@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.types import TypeDecorator, CHAR
-from auth_service.repository.base import Base
+from app.repository.base import Base
 
 
 class UUIDType(TypeDecorator):

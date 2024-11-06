@@ -4,9 +4,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy.ext.asyncio.engine import create_async_engine
 from sqlalchemy.future import Connection
-from auth_service.repository.meta import meta
-from auth_service.repository.models import load_all_models
-from auth_service.settings import settings
+from app.repository.meta import meta
+from app.repository.models import load_all_models
+from app.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

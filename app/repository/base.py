@@ -1,6 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase
 
-from auth_service.repository.meta import meta
+from app.repository.meta import meta
 
 
 class Base(DeclarativeBase):

@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix="AUTH_SERVICE_",
+        env_prefix="APP_",
         env_file_encoding="utf-8",
     )
 

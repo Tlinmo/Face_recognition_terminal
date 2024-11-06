@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from auth_service.settings import settings
+from app.settings import settings
 
 
 async def create_database() -> None:
