@@ -1,0 +1,2 @@
+class AuthUsernameError(Exception):
+    pass
