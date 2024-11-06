@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # app
 
 This project was generated using fastapi_template.
@@ -155,3 +156,4 @@ For running tests on your local machine.
 ```bash
 pytest -vv .
 ```
+
