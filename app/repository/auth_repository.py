@@ -56,6 +56,8 @@ class UserRepository(IUserRepository):
             hashed_password=user.hashed_password,
             is_superuser=user.is_superuser,
         )
+        db_user.set_embeddings(user.embeddings)
+        
         self.session.add(db_user)
         await self.save()
         _user = User(**db_user.dict())
@@ -77,13 +79,13 @@ class UserRepository(IUserRepository):
         user = user.scalars().one_or_none()
 
         if user:
-            return User(**user.dict())
+            return User(**user.dict(), embeddings=user.get_embeddings())
 
     async def list(self, limit: int = 10) -> List[User]:
-        return super().list(limit)
+        return await super().list(limit)
 
     async def update(self, id_: uuid.UUID, user: User):
-        return super().update(id_, user)
+        await super().update(id_, user)
 
     async def save(self):
         try:

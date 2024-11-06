@@ -10,11 +10,13 @@ class User:
         hashed_password: str,
         id: uuid.UUID | None = None,
         is_superuser: bool = False,
+        embeddings: list | None = None,
     ) -> None:
         self.id = id
         self.username = username
         self.hashed_password = hashed_password
         self.is_superuser = is_superuser
+        self.embeddings = embeddings
 
     @staticmethod
     def hash_password(password: str) -> str:

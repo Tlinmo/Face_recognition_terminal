@@ -1,8 +1,8 @@
-"""Initial migration
+"""add embeddings
 
-Revision ID: 77b630262c0f
+Revision ID: d5b0608e2ac6
 Revises: 
-Create Date: 2024-11-06 15:26:06.318001
+Create Date: 2024-11-06 16:10:02.259168
 
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "77b630262c0f"
+revision = "d5b0608e2ac6"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("username", sa.String(), nullable=True),
         sa.Column("hashed_password", sa.String(), nullable=True),
         sa.Column("is_superuser", sa.Boolean(), nullable=True),
+        sa.Column("embeddings", sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

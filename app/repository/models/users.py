@@ -1,6 +1,7 @@
+import json
 import uuid
 from sqlalchemy import Boolean, Column, String
-from sqlalchemy.types import TypeDecorator, CHAR
+from sqlalchemy.types import TypeDecorator, CHAR, Text
 from app.repository.base import Base
 
 
@@ -32,6 +33,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String, index=True)
     is_superuser = Column(Boolean, default=False)
+    embeddings = Column(Text)
 
     def dict(self):
         return {
@@ -39,4 +41,15 @@ class User(Base):
             "username": self.username,
             "hashed_password": self.hashed_password,
             "is_superuser": self.is_superuser,
+            # "embeddings": self.get_embeddings(), # верни когда перейдешь на postgresql
         }
+
+    def set_embeddings(self, values):
+        """Сериализация массива в строку JSON."""
+        self.embeddings = json.dumps(values)
+
+    def get_embeddings(self) -> list:
+        """Десериализация строки JSON в массив."""
+        if self.embeddings:
+            return json.loads(self.embeddings)
+        return []
