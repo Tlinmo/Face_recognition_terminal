@@ -34,11 +34,11 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def list(self, limit: int = 10) -> List[User]:
+    async def list(self, offset: int, limit: int = 10) -> List[User]:
         pass
 
     @abstractmethod
-    async def update(self, id_: uuid.UUID, user: User):
+    async def update(self, user: User):
         pass
 
     @abstractmethod
@@ -71,7 +71,8 @@ class UserRepository(IUserRepository):
         sql = select(db_User)
 
         if id_:
-            sql = select(db_User).filter(db_User.id == id)
+            # Юзаем sqlite, а он не может в UUID так что вот так вот
+            sql = select(db_User).filter(db_User.id == str(id_))
         if username:
             sql = select(db_User).filter(db_User.username == username)
 
@@ -81,11 +82,33 @@ class UserRepository(IUserRepository):
         if user:
             return User(**user.dict(), embeddings=user.get_embeddings())
 
-    async def list(self, limit: int = 10) -> List[User]:
-        return await super().list(limit)
+    async def list(self, offset: int, limit: int = 10) -> List[User]:
+        sql = select(db_User).offset(offset).limit(limit)
+        users = await self.session.execute(sql)
+        users = users.scalars().all()
+        
+        return [User(**user.dict(), embeddings=user.get_embeddings()) for user in users]
 
-    async def update(self, id_: uuid.UUID, user: User):
-        await super().update(id_, user)
+
+    async def update(self, user: User):
+            # Юзаем sqlite, а он не может в UUID так что вот так вот
+            sql = select(db_User).where(db_User.id == str(user.id))
+            _user = await self.session.execute(sql)
+            _user = _user.scalars().one_or_none()
+
+            if _user is None:
+                raise ValueError("User not found")
+
+            if user.username:
+                logger.debug(f"Изменяем имя пользователя {_user.username} на {user.username}")
+                _user.username = user.username
+            if user.embeddings:
+                logger.debug(f"Изменяем embeddings пользователя {_user.embeddings} на {user.embeddings}")
+                _user.set_embeddings(user.embeddings)
+            
+            self.session.add(_user)
+            await self.save()
+
 
     async def save(self):
         try:

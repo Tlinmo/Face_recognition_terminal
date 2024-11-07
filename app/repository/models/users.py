@@ -1,9 +1,14 @@
 import json
 import uuid
+
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.types import TypeDecorator, CHAR, Text
-from app.repository.base import Base
+from loguru import logger
 
+from app.repository.base import Base
+from app.log import configure_logging
+
+configure_logging()
 
 class UUIDType(TypeDecorator):
     """Custom UUID type for SQLite."""
@@ -46,10 +51,16 @@ class User(Base):
 
     def set_embeddings(self, values):
         """Сериализация массива в строку JSON."""
+        logger.debug("Сериализация embeddings в строку")
         self.embeddings = json.dumps(values)
+        logger.debug(f"self.embeddings: {self.embeddings}, json.dumps(values): {json.dumps(values)}")
+        
 
     def get_embeddings(self) -> list:
         """Десериализация строки JSON в массив."""
         if self.embeddings:
+            logger.debug("Десериализация строки JSON в массив")
+            logger.debug(f"self.embeddings: {self.embeddings}, json.loads(self.embeddings): {json.loads(self.embeddings)}")
             return json.loads(self.embeddings)
+        
         return []

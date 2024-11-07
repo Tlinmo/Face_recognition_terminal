@@ -6,11 +6,11 @@ import bcrypt
 class User:
     def __init__(
         self,
-        username: str,
-        hashed_password: str,
+        username: str | None = None,
+        hashed_password: str | None = None,
         id: uuid.UUID | None = None,
         is_superuser: bool = False,
-        embeddings: list | None = None,
+        embeddings: list = [],
     ) -> None:
         self.id = id
         self.username = username
