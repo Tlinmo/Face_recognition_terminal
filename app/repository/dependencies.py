@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from loguru import logger
 
-from log import configure_logging
+from app.log import configure_logging
 
 configure_logging()
 

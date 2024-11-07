@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 
 
-from log import configure_logging
+from app.log import configure_logging
 from app.repository.dependencies import get_db_session
 from app.repository.auth_repository import UserRepository
 from app.services.auth.auth import AuthService
@@ -53,7 +53,7 @@ async def authentication(
         return token
     else:
         return 'Не получилось'
-    
+
 
 # Я шел по цепочке от репозитория до веб-апи ради этого, и я всё больше убеждаюсь что ему тут не место
 # Но мне лень делать новый модуль для одной функции
@@ -87,7 +87,7 @@ async def update(
     logger.debug("Обновляем пользователя")
     repo = UserRepository(session=session)
     auth = AuthService(user_repository=repo)
-    
+
     user = User(id=_user.id, username=_user.username, embeddings=_user.embeddings)
-    
+
     await auth.update(user)
