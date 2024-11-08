@@ -102,6 +102,7 @@ class UserRepository(IUserRepository):
             if user.username:
                 logger.debug(f"Изменяем имя пользователя {_user.username} на {user.username}")
                 _user.username = user.username
+                
             if user.embeddings:
                 logger.debug(f"Изменяем embeddings пользователя {_user.embeddings} на {user.embeddings}")
                 _user.set_embeddings(user.embeddings)

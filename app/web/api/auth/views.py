@@ -2,7 +2,7 @@ from typing import List
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 
@@ -23,28 +23,30 @@ router = APIRouter()
 async def register(
     _user: schema.UserCreate, session: AsyncSession = Depends(get_db_session)
 ) -> str:
+    """Cоздание пользователя"""
+    
     logger.debug("Создание пользователя")
 
     repo = UserRepository(session=session)
     auth = AuthService(user_repository=repo)
     user = User(
-        username=_user.username, hashed_password=User.hash_password(_user.password)
+        username=_user.username,
+        hashed_password=User.hash_password(_user.password),
+        embeddings=_user.embeddings,
     )
     try:
         token = await auth.register(user)
         return token
     except AuthUsernameError:
-        logger.debug(
-            "Создание пользователя не получилось, веб апишка это видит и может дефать"
-        )
-        return "Не получилось"
-
-
-@router.post("/login")
+        raise HTTPException(status_code=409, detail="Такой пользователь уже есть")
+    
+@router.post("/login", status_code=200)
 async def authentication(
-    _user: schema.UserCreate, session: AsyncSession = Depends(get_db_session)
+    _user: schema.AuthUser, session: AsyncSession = Depends(get_db_session)
 ) -> str:
+    """Авторизация пользователя"""
     logger.debug("Авторизация пользователя")
+    
     repo = UserRepository(session=session)
     auth = AuthService(user_repository=repo)
 
@@ -52,42 +54,4 @@ async def authentication(
     if token:
         return token
     else:
-        return 'Не получилось'
-    
-
-# Я шел по цепочке от репозитория до веб-апи ради этого, и я всё больше убеждаюсь что ему тут не место
-# Но мне лень делать новый модуль для одной функции
-@router.post("/list", response_model=List[schema.User])
-async def lst(
-    offset: int = 0, limit:int = 10, session: AsyncSession = Depends(get_db_session)
-) -> List[User]:
-    logger.debug("Получаем список пользователей")
-    repo = UserRepository(session=session)
-    auth = AuthService(user_repository=repo)
-
-    users = await auth.lst(offset=offset, limit=limit)
-    return users
-
-@router.post("/user{id_:str}", response_model=schema.User)
-async def show(
-    id_: UUID, session: AsyncSession = Depends(get_db_session)
-) -> User:
-    logger.debug("Получаем пользователя")
-    repo = UserRepository(session=session)
-    auth = AuthService(user_repository=repo)
-
-    users = await auth.show(id_=id_)
-    return users
-
-
-
-@router.put("/update", status_code=204)
-async def update(
-    _user: schema.UpdateUser, session: AsyncSession = Depends(get_db_session)):
-    logger.debug("Обновляем пользователя")
-    repo = UserRepository(session=session)
-    auth = AuthService(user_repository=repo)
-    
-    user = User(id=_user.id, username=_user.username, embeddings=_user.embeddings)
-    
-    await auth.update(user)
+        raise HTTPException(status_code=401, detail="Не удалось авторизоваться")

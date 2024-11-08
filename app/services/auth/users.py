@@ -1,3 +1,4 @@
+from typing import List
 import uuid
 
 import bcrypt
@@ -10,7 +11,7 @@ class User:
         hashed_password: str | None = None,
         id: uuid.UUID | None = None,
         is_superuser: bool = False,
-        embeddings: list = [],
+        embeddings: List[List[float]] = [[]],
     ) -> None:
         self.id = id
         self.username = username

@@ -7,20 +7,9 @@ from pydantic import BaseModel
 class UserCreate(BaseModel):
     username: str
     password: str
-
-class UpdateUser(BaseModel):
-    id: Optional[UUID]
+    embeddings: Optional[List[List[float]]]
+    
+class AuthUser(BaseModel):
     username: str
-    embeddings: Optional[List[float]]
-
-    class Config:
-        from_attributes = True 
-
-class User(BaseModel):
-    id: Optional[UUID]
-    username: str
-    is_superuser: bool
-    embeddings: Optional[List[float]]
-
-    class Config:
-        from_attributes = True 
+    password: str
+    embeddings: Optional[List[List[float]]]

@@ -46,7 +46,7 @@ class User(Base):
             "username": self.username,
             "hashed_password": self.hashed_password,
             "is_superuser": self.is_superuser,
-            # "embeddings": self.get_embeddings(), # верни когда перейдешь на postgresql
+            # "embeddings": self.embeddings, # верни когда перейдешь на postgresql
         }
 
     def set_embeddings(self, values):
