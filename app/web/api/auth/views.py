@@ -24,7 +24,7 @@ async def register(
     _user: schema.UserCreate, session: AsyncSession = Depends(get_db_session)
 ) -> str:
     """Cоздание пользователя"""
-    
+
     logger.debug("Создание пользователя")
 
     repo = UserRepository(session=session)
@@ -39,14 +39,15 @@ async def register(
         return token
     except AuthUsernameError:
         raise HTTPException(status_code=409, detail="Такой пользователь уже есть")
-    
+
+
 @router.post("/login", status_code=200)
 async def authentication(
     _user: schema.AuthUser, session: AsyncSession = Depends(get_db_session)
 ) -> str:
     """Авторизация пользователя"""
     logger.debug("Авторизация пользователя")
-    
+
     repo = UserRepository(session=session)
     auth = AuthService(user_repository=repo)
 

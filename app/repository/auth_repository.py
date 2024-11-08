@@ -4,7 +4,7 @@ import uuid
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
 
 from app.log import configure_logging
@@ -30,7 +30,7 @@ class IUserRepository(ABC):
         self,
         id_: uuid.UUID | None = None,
         username: str | None = None,
-    ) -> User:
+    ) -> User | None:
         pass
 
     @abstractmethod
@@ -44,7 +44,6 @@ class IUserRepository(ABC):
     @abstractmethod
     async def save(self):
         pass
-
 
 class UserRepository(IUserRepository):
     def __init__(self, session: AsyncSession) -> None:
@@ -63,25 +62,32 @@ class UserRepository(IUserRepository):
         _user = User(**db_user.dict())
         return _user
 
+
     async def get(
         self,
         id_: uuid.UUID | None = None,
         username: str | None = None,
-    ) -> User:
+    ) -> User | None:
+
+        if id_ is None and username is None:
+            return None
+
         sql = select(db_User)
 
+        filters = []
         if id_:
-            # Юзаем sqlite, а он не может в UUID так что вот так вот
-            sql = select(db_User).filter(db_User.id == str(id_))
+            filters.append(db_User.id == str(id_))
         if username:
-            sql = select(db_User).filter(db_User.username == username)
+            filters.append(db_User.username == username)
+
+        sql = sql.filter(or_(*filters))
 
         user = await self.session.execute(sql)
         user = user.scalars().one_or_none()
 
         if user:
             return User(**user.dict(), embeddings=user.get_embeddings())
-
+        
     async def list(self, offset: int, limit: int = 10) -> List[User]:
         sql = select(db_User).offset(offset).limit(limit)
         users = await self.session.execute(sql)
@@ -91,25 +97,28 @@ class UserRepository(IUserRepository):
 
 
     async def update(self, user: User):
-            # Юзаем sqlite, а он не может в UUID так что вот так вот
-            sql = select(db_User).where(db_User.id == str(user.id))
-            _user = await self.session.execute(sql)
-            _user = _user.scalars().one_or_none()
+        # Юзаем sqlite, а он не может в UUID так что вот так вот
+        sql = select(db_User).where(db_User.id == str(user.id))
+        _user = await self.session.execute(sql)
+        _user = _user.scalars().one_or_none()
 
-            if _user is None:
-                raise ValueError("User not found")
+        if _user is None:
+            raise ValueError("User not found")
 
-            if user.username:
-                logger.debug(f"Изменяем имя пользователя {_user.username} на {user.username}")
-                _user.username = user.username
-                
-            if user.embeddings:
-                logger.debug(f"Изменяем embeddings пользователя {_user.embeddings} на {user.embeddings}")
-                _user.set_embeddings(user.embeddings)
+        if user.username:
+            logger.debug(
+                f"Изменяем имя пользователя {_user.username} на {user.username}"
+            )
+            _user.username = user.username
 
-            self.session.add(_user)
-            await self.save()
+        if user.embeddings:
+            logger.debug(
+                f"Изменяем embeddings пользователя {_user.embeddings} на {user.embeddings}"
+            )
+            _user.set_embeddings(user.embeddings)
 
+        self.session.add(_user)
+        await self.save()
 
     async def save(self):
         try:

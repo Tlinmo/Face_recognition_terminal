@@ -27,4 +27,6 @@ class User:
         return hashed_password.decode("utf-8")
 
     def check_password(self, password: str) -> bool:
-        return bcrypt.checkpw(password.encode("utf-8"), self.hashed_password.encode("utf-8"))
+        return bcrypt.checkpw(
+            password.encode("utf-8"), self.hashed_password.encode("utf-8")
+        )

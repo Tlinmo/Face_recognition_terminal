@@ -8,7 +8,8 @@ class UserCreate(BaseModel):
     username: str
     password: str
     embeddings: Optional[List[List[float]]]
-    
+
+
 class AuthUser(BaseModel):
     username: str
     password: str
