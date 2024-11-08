@@ -19,7 +19,7 @@ async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]
     session: AsyncSession = request.app.state.db_session_factory()
 
     try:
-        logger.debug("Выдается сессия")
+        logger.debug("Выдается сессия базы данных")
         yield session
         # logger.debug("Производится  commit")
         # await session.commit()
@@ -27,6 +27,7 @@ async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]
         logger.error(error)
         await session.rollback()
     finally:
+        logger.debug("Сессия базы данных закрывается")
         await session.close()
 
 

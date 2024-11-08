@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.log import configure_logging
-from app.services.auth.users import User
+from app.services.users.user import User
 from app.repository.models.users import User as db_User
 from app.repository.exceptions import UsernameError
 

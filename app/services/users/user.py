@@ -1,6 +1,7 @@
 from typing import List
 import uuid
 
+from loguru import logger
 import bcrypt
 
 

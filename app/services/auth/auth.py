@@ -9,7 +9,7 @@ from loguru import logger
 from app.repository.exceptions import UsernameError
 
 from app.repository.auth_repository import IUserRepository
-from app.services.auth.users import User
+from app.services.users.user import User
 from app.services.auth.exceptions import AuthUsernameError
 from app.log import configure_logging
 from app.settings import APP_ROOT

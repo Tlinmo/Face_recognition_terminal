@@ -10,7 +10,7 @@ from app.log import configure_logging
 from app.repository.dependencies import get_db_session
 from app.repository.auth_repository import UserRepository
 from app.services.auth.auth import AuthService
-from app.services.auth.users import User
+from app.services.users.user import User
 from app.services.auth.exceptions import AuthUsernameError
 from app.web.api.auth import schema
 
