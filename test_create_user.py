@@ -1,8 +1,7 @@
 from insightface.app import FaceAnalysis
 import cv2
-import numpy as np
-from PIL import ImageFont, ImageDraw, Image
 import requests
+import json
 
 # Инициализация приложения для анализа лиц InsightFace
 app = FaceAnalysis(name="buffalo_l", providers=['CPUExecutionProvider'])
@@ -13,29 +12,12 @@ if not cap.isOpened():
     print("Ошибка доступа к веб-камере")
     exit(-1)
 
-usernames = []
-embeddingss = []
-def get_users():
-    global usernames, embeddingss
-    users = requests.post('http://127.0.0.1:8000/api/list?offset=0&limit=100').json()
-    usernames = [item["username"] for item in users]
-    embeddingss = [np.array(item["embeddings"]) for item in users]
-
-def compare_embeddings(embs, emb2):
-    dists = []
-    for emb in embs:
-        dists.append(np.dot(emb, emb2) / (np.linalg.norm(emb) * np.linalg.norm(emb2)))
-
-    index = np.argmin(dists)
-    return dists[index], index
-
-# Пороговое значение для сравнения лиц (можно подбирать экспериментально)
-THRESHOLD = 0.6
+# Initialize some variables
 face_locations = []
 face_encodings = []
 face_names = []
 faces = []
-process_this_frame = 14
+process_this_frame = 1
 
 resize_coef = 0.25
 
@@ -45,7 +27,6 @@ while True:
 
     # Only process every other frame of video to save time
     if process_this_frame == 14:
-        get_users()
         face_locations = []
         face_encodings = []
         # Resize frame of video to 1/4 size for faster face recognition processing
@@ -56,11 +37,7 @@ while True:
 
         face_names = []
         for index, face in enumerate(faces):
-            dist, index = compare_embeddings(embeddingss, face.embedding)
-            if dist < THRESHOLD:
-                name = f'{usernames[index]} {float(int(dist * 10000)) / 100}'
-            else:
-                name = f'Unknown {float(int(dist * 10000)) / 100}'
+            name = f'User[{index}]'
 
             face_names.append(name)
             face_locations.append(face.bbox)
@@ -100,6 +77,47 @@ while True:
     if key == ord('q') or key == ord('й'):
         break
 
+    # Hit 'c' on the keyboard to add user!
+    if key == ord('c') or key == ord('с'):
+        username = input('Enter your username: ')
+        password = input('Enter your password: ')
+        index = int(input('Enter index of user on image you want to add to database: '))
+
+        # Creating user
+        headers = {
+            "Content-Type": "application/json",
+            "accept": "application/json"
+        }
+        data = json.dumps({
+            "username": username,
+            "password": password
+        })
+        response = requests.post('http://localhost:8000/api/create', data=data, headers=headers)
+        if response.status_code == 201:
+            users = requests.post('http://127.0.0.1:8000/api/list?offset=0&limit=100').json()
+            for user in users:
+                if user["username"] == username:
+                    id = user["id"]
+                    print(f'User {username} was successfully found in database')
+                    break
+            else:
+                print('Some troubles')
+        else:
+            print(f'User {username} was not added to database')
+            print(str(response.text))
+
+        data = json.dumps({
+            "id": id,
+            "username": username,
+            "embeddings": face_encodings[index].tolist()
+        })
+        response = requests.put('http://localhost:8000/api/update', data=data, headers=headers)
+        if response.status_code == 204:
+            print(f'Embeddings was successfully added to database')
+        else:
+            print(f'Embeddings was not added to database')
+            print(str(response.text))
+
 # Release handle to the webcam
 cap.release()
-cv2.destroyAllWindows()  
+cv2.destroyAllWindows()
