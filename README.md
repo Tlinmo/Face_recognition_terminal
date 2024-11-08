@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # app
 
 This project was generated using fastapi_template.
@@ -50,9 +49,8 @@ docker-compose build
 $ tree "app"
 app
 ├── conftest.py  # Fixtures for all tests.
-├── db  # module contains db configurations
-│   ├── dao  # Data Access Objects. Contains different classes to interact with database.
-│   └── models  # Package contains different models for ORMs.
+├── repository  # module contains db configurations
+│   │   └── models  # Package contains different models for ORMs.
 ├── __main__.py  # Startup script. Starts uvicorn.
 ├── services  # Package for different external services such as rabbit or redis etc.
 ├── settings.py  # Main configuration settings for project.
