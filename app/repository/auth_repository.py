@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from log import configure_logging
+from app.log import configure_logging
 from app.services.auth.users import User
 from app.repository.models.users import User as db_User
 from app.repository.exceptions import UsernameError
@@ -57,7 +57,7 @@ class UserRepository(IUserRepository):
             is_superuser=user.is_superuser,
         )
         db_user.set_embeddings(user.embeddings)
-        
+
         self.session.add(db_user)
         await self.save()
         _user = User(**db_user.dict())
@@ -86,7 +86,7 @@ class UserRepository(IUserRepository):
         sql = select(db_User).offset(offset).limit(limit)
         users = await self.session.execute(sql)
         users = users.scalars().all()
-        
+
         return [User(**user.dict(), embeddings=user.get_embeddings()) for user in users]
 
 
@@ -106,7 +106,7 @@ class UserRepository(IUserRepository):
             if user.embeddings:
                 logger.debug(f"Изменяем embeddings пользователя {_user.embeddings} на {user.embeddings}")
                 _user.set_embeddings(user.embeddings)
-            
+
             self.session.add(_user)
             await self.save()
 

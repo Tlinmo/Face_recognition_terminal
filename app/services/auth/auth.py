@@ -11,8 +11,8 @@ from app.repository.exceptions import UsernameError
 from app.repository.auth_repository import IUserRepository
 from app.services.auth.users import User
 from app.services.auth.exceptions import AuthUsernameError
-from log import configure_logging
-from settings import APP_ROOT
+from app.log import configure_logging
+from app.settings import APP_ROOT
 
 configure_logging()
 
@@ -51,7 +51,7 @@ class AuthService:
                 return "Всё збс"
             else:
                 return "Кажется всё пошло по ***** чекай логи"
-            
+
         except UsernameError as error:
             logger.debug(error)
             raise AuthUsernameError()
@@ -62,7 +62,7 @@ class AuthService:
         if _user.check_password(password):
             return "тут типа токен? а зач?"
         return "password не верный"
-            
+
     # Это тут вообще не к месту но рефакторить будем потом Гы)
     async def lst(self, offset:int, limit: int) -> List[User]:
         _users = await self.user_repository.list(offset=offset, limit=limit)
@@ -72,7 +72,7 @@ class AuthService:
         _user = await self.user_repository.get(id_=id_)
         return _user
 
-    
+
     async def update(self, user: User):
         _users = await self.user_repository.update(user=user)
         return _users

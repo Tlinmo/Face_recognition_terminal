@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 
-from log import configure_logging
+from app.log import configure_logging
 from app.repository.dependencies import get_db_session
 from app.repository.auth_repository import UserRepository
 from app.services.auth.auth import AuthService
