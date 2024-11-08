@@ -1,11 +1,17 @@
-import face_recognition
 import cv2
-from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+from PIL import ImageFont, ImageDraw, Image
+from insightface.app import FaceAnalysis
 import requests
 
-video_capture = cv2.VideoCapture(2)
+# Инициализация приложения для анализа лиц InsightFace
+app = FaceAnalysis(name="buffalo_l", providers=['CUDAExecutionProvider'])
+app.prepare(ctx_id=0, det_size=(256,256))
 
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print("Ошибка доступа к веб-камере")
+    exit(-1)
 
 usernames = []
 embeddingss = []
@@ -15,6 +21,16 @@ def get_users():
     usernames = [item["username"] for item in users]
     embeddingss = [np.array(item["embeddings"]) for item in users]
 
+def compare_embeddings(embs, emb2):
+    dists = []
+    for emb in embs:
+        dists.append(np.dot(emb, emb2) / (np.linalg.norm(emb) * np.linalg.norm(emb2)))
+
+    index = np.argmin(dists)
+    return dists[index], index
+
+# Пороговое значение для сравнения лиц (можно подбирать экспериментально)
+THRESHOLD = 0.6
 process_this_frame = 0
 face_locations = []
 face_names = []
@@ -23,7 +39,7 @@ resize_coef = 1
 
 while True:
     # Grab a single frame of video
-    ret, frame = video_capture.read()
+    ret, frame = cap.read()
 
     # Only process every other frame of video to save time
     if process_this_frame == 14:
@@ -35,27 +51,18 @@ while True:
         rgb_small_frame = np.array(small_frame[:, :, ::-1])
 
         # Find all the faces and face encodings in the current frame of video
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        faces = app.get(rgb_small_frame)
 
         face_names = []
-        for face_encoding in face_encodings:
+        for face in faces:
             # See if the face is a match for the known face(s)
-            matches = face_recognition.compare_faces(embeddingss, face_encoding, 0.6)
+            dist, index = compare_embeddings(embeddingss, face.embedding)
             name = "Unknown"
 
-            # # If a match was found in known_face_encodings, just use the first one.
-            # if True in matches:
-            #     first_match_index = matches.index(True)
-            #     name = known_face_names[first_match_index]
-
-            # Or instead, use the known face with the smallest distance to the new face
-            face_distances = face_recognition.face_distance(embeddingss, face_encoding)
-            best_match_index = np.argmin(face_distances)
-            if matches[best_match_index]:
-                name = usernames[best_match_index] + f' {int(100 - face_distances[best_match_index] * 100)}%'
+            if dist < 0.6:
+                name = usernames[index] + f' {int(100 - dist * 100)}%'
             else:
-                name = f'Unknown {int(100 - face_distances[best_match_index] * 100)}%'
+                name = f'Unknown {int(100 - dist * 100)}%'
 
             face_names.append(name)
 
@@ -91,5 +98,5 @@ while True:
         break
 
 # Release handle to the webcam
-video_capture.release()
-cv2.destroyAllWindows()
+cap.release()
+cv2.destroyAllWindows()  
