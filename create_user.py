@@ -87,6 +87,7 @@ while True:
         }
         data = json.dumps({
             "username": username,
+<<<<<<< HEAD
             "password": password,
             "embeddings": face_encodings[index]
         })
@@ -94,10 +95,39 @@ while True:
         if response.status_code == 201:
             print(f'User {username} was successfully found in database')
             print(f'Embeddings was successfully added to database')
+=======
+            "password": password
+        })
+        response = requests.post('http://localhost:8000/api/create', data=data, headers=headers)
+        if response.status_code == 201:
+            users = requests.post('http://127.0.0.1:8000/api/list?offset=0&limit=100').json()
+            for user in users:
+                if user["username"] == username:
+                    id = user["id"]
+                    print(f'User {username} was successfully found in database')
+                    break
+            else:
+                print('Some troubles')
+>>>>>>> 423826a21ce6ef2feb6ac4de6c9c7e6c9d8a75a9
         else:
             print(f'User {username} was not added to database')
             print(str(response.text))
 
+<<<<<<< HEAD
+=======
+        data = json.dumps({
+            "id": id,
+            "username": username,
+            "embeddings": face_encodings[index].tolist()
+        })
+        response = requests.put('http://localhost:8000/api/update', data=data, headers=headers)
+        if response.status_code == 204:
+            print(f'Embeddings was successfully added to database')
+        else:
+            print(f'Embeddings was not added to database')
+            print(str(response.text))
+
+>>>>>>> 423826a21ce6ef2feb6ac4de6c9c7e6c9d8a75a9
 # Release handle to the webcam
 video_capture.release()
 cv2.destroyAllWindows()
