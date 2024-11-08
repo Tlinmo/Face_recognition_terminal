@@ -1,7 +1,3 @@
-# app
-
-This project was generated using fastapi_template.
-
 ## Poetry
 
 This project uses poetry. It's a modern dependency management
