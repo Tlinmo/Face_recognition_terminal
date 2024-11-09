@@ -11,7 +11,7 @@ from app.repository.dependencies import get_db_session
 from app.repository.auth_repository import UserRepository
 from app.services.auth.auth import AuthService
 from app.services.users.user import User
-from app.services.auth.exceptions import AuthUsernameError
+from app.services.auth.exceptions import AuthUsernameError, AuthPasswordError
 from app.web.api.auth import schema
 
 configure_logging()
@@ -32,7 +32,7 @@ async def register(
     user = User(
         username=_user.username,
         hashed_password=User.hash_password(_user.password),
-        embeddings=_user.embeddings,
+        embedding=_user.embedding,
     )
     try:
         token = await auth.register(user)
@@ -51,8 +51,10 @@ async def authentication(
     repo = UserRepository(session=session)
     auth = AuthService(user_repository=repo)
 
-    token = await auth.authentication(username=_user.username, password=_user.password)
-    if token:
+    try:
+        token = await auth.authentication(username=_user.username, password=_user.password)
         return token
-    else:
-        raise HTTPException(status_code=401, detail="Не удалось авторизоваться")
+    except AuthPasswordError:
+        raise HTTPException(status_code=401, detail="Пароль не верный")
+    except AuthUsernameError:
+        raise HTTPException(status_code=401, detail="Логин не верный")

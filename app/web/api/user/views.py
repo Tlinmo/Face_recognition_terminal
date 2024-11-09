@@ -10,6 +10,7 @@ from log import configure_logging
 from app.repository.dependencies import get_db_session
 from app.repository.auth_repository import UserRepository
 from app.services.users.users import UserService
+from app.services.users.exceptions import UserUpdateError
 from app.services.users.user import User
 from app.web.api.user import schema
 
@@ -61,7 +62,10 @@ async def update(
     repo = UserRepository(session=session)
     user_service = UserService(user_repository=repo)
 
-    user = User(id=id_, username=_user.username, embeddings=_user.embeddings)
-
-    await user_service.update(user)
-
+    user = User(id=id_, username=_user.username, embedding=_user.embedding)
+    
+    try:
+        await user_service.update(user)
+    except UserUpdateError:
+        raise HTTPException(status_code=404, detail="Не найдено")
+        

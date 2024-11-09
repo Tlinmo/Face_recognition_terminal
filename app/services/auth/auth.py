@@ -3,7 +3,7 @@ from app.repository.exceptions import UsernameError
 
 from app.repository.auth_repository import IUserRepository
 from app.services.users.user import User
-from app.services.auth.exceptions import AuthUsernameError
+from app.services.auth.exceptions import AuthUsernameError, AuthPasswordError
 from app.log import configure_logging
 
 configure_logging()
@@ -29,12 +29,10 @@ class AuthService:
             logger.debug(error)
             raise AuthUsernameError()
 
-    # Тут по хорошему тоже тру кач ебнуть, что бы глаз радовался и проверочки  можно было делать разные
-    # Какая же мерзоть, бррр. Но убирать буду потом :D
     async def authentication(self, username: str, password: str) -> str:
         _user = await self.user_repository.get(username=username)
         if _user:
             if _user.check_password(password):
                 return "тут типа токен? а зач?"
-            return "password не верный"
-        return "Username не верный"
+            raise AuthPasswordError()
+        raise AuthUsernameError()
